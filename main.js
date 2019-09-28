@@ -24,6 +24,11 @@ function transpose(matrix) {
   return grid;
 }
 
+function avg(arr) {
+  let sum = arr.reduce((previous, current) => current += previous);
+  return sum / arr.length;
+}
+
 class SVGLine {
   static curved(p1, p2) {
     let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -219,7 +224,9 @@ class Dagger {
         let m1 = Math.min(...heightOfLeftDepsForA)
         let m2 = Math.min(...heightOfLeftDepsForB)
 
-        console.log(m1,m2)
+        if(m1 === m2) {
+          return avg(heightOfLeftDepsForA) > avg(heightOfLeftDepsForB)
+        }
 
         return m1 > m2
       })
@@ -359,9 +366,10 @@ $(function() {
     deps: {
       "0": [],
       "A": ["0"],
-      "B": ["0"],
-      "C": ["B"],
-      "D": ["A"]
+      "B": ["A"],
+      "C": [],
+      "D": ["C"],
+      "E": ["D", "B"]
     }
   })
 
