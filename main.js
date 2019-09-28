@@ -24,6 +24,34 @@ function transpose(matrix) {
   return grid;
 }
 
+class SVGLine {
+  static curved(p1, p2) {
+    let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+    path.setAttribute('fill', 'none')
+    path.setAttribute("stroke", "green")
+    path.setAttribute("stroke-width", '3px')
+
+    // http://blogs.sitepointstatic.com/examples/tech/svg-curves/cubic-curve.html
+    path.setAttribute('d', `M ${p1[0]},${p1[1]} C ${p1[0] + 40},${p1[1]} ${p2[0] - 40},${p2[1]} ${p2[0]},${p2[1]}`)
+
+    return path
+  }
+
+  static streight(p1, p2) {
+    let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+
+    path.setAttribute('fill', 'none')
+    path.setAttribute("stroke", "green")
+    path.setAttribute("stroke-width", '3px')
+
+    // http://blogs.sitepointstatic.com/examples/tech/svg-curves/cubic-curve.html
+    path.setAttribute('d', `M ${p1[0]},${p1[1]} L ${p2[0]},${p2[1]}`)
+
+    return path
+  }
+}
+
 class Rank {
   //
   // Utility for calculating the "rank" of a node.
@@ -221,32 +249,58 @@ class Dagger {
     let diagram = $(this.selector)
 
     Object.keys(this.deps).forEach((targetName) => {
-      this.deps[targetName].forEach((sourceName, i) => {
+      this.deps[targetName].forEach((sourceName) => {
         let source = this.findDomNode(sourceName)
         let target = this.findDomNode(targetName)
 
-        this.drawLine(
-          source.offset().left + source.width() - 5,
-          source.offset().top - diagram.offset().top + source.height() / 2,
-          target.offset().left - diagram.offset().left,
-          target.offset().top - diagram.offset().top + target.height() / 2
+        let sourceBox = {
+          left:   source.offset().left - diagram.offset().left,
+          right:  source.offset().left - diagram.offset().left + source.outerWidth(),
+          top:    source.offset().top - diagram.offset().top,
+          bottom: source.offset().top - diagram.offset().top + source.outerHeight()
+        }
+
+        let targetBox = {
+          left:   target.offset().left - diagram.offset().left,
+          right:  target.offset().left - diagram.offset().left + target.outerWidth(),
+          top:    target.offset().top - diagram.offset().top,
+          bottom: target.offset().top - diagram.offset().top + target.outerHeight()
+        }
+
+        let sourceXCenter = sourceBox.left + (sourceBox.right - sourceBox.left) / 2
+        let sourceYCenter = sourceBox.top  + (sourceBox.bottom - sourceBox.top) / 2
+        let targetXCenter = targetBox.left + (targetBox.right - targetBox.left) / 2
+        let targetYCenter = targetBox.top  + (targetBox.bottom - targetBox.top) / 2
+
+        let line = SVGLine.curved(
+          [sourceBox.right, sourceYCenter],
+          [targetBox.left, targetYCenter]
         )
+
+        $(this.selector + " svg").append(line)
       })
     })
-  }
 
-  drawLine(x1, y1, x2, y2) {
-    let line = document.createElementNS('http://www.w3.org/2000/svg','line')
+    this.nodeNames.filter(n => n.includes("virtual")).forEach(n => {
+      let node = this.findDomNode(n)
 
-    line.setAttribute('id','line2')
-    line.setAttribute('x1',x1)
-    line.setAttribute('y1',y1)
-    line.setAttribute('x2',x2)
-    line.setAttribute('y2',y2)
-    line.setAttribute("stroke", "gray")
-    line.setAttribute("stroke-width", '5px')
+      let box = {
+        left:   node.offset().left - diagram.offset().left,
+        right:  node.offset().left - diagram.offset().left + node.outerWidth(),
+        top:    node.offset().top - diagram.offset().top,
+        bottom: node.offset().top - diagram.offset().top + node.outerHeight()
+      }
 
-    $(this.selector + " svg").append(line)
+      let nodeXCenter = box.left + (box.right - box.left) / 2
+      let nodeYCenter = box.top  + (box.bottom - box.top) / 2
+
+      let line = SVGLine.streight(
+        [box.left, nodeYCenter],
+        [box.right, nodeYCenter]
+      )
+
+      $(this.selector + " svg").append(line)
+    })
   }
 }
 
