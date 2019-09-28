@@ -200,6 +200,31 @@ class Dagger {
       elements[rank].push(n)
     })
 
+    //
+    // Sort by dependancy on left
+    //
+    elements.forEach((column, i) => {
+      if(i === 0) return; // skip first column
+      console.log(column)
+
+      column.sort((a, b) => {
+        let heightOfLeftDepsForA = this.deps[a].map((d) => {
+          return elements[i-1].findIndex(x => x === d)
+        })
+
+        let heightOfLeftDepsForB = this.deps[b].map((d) => {
+          return elements[i-1].findIndex(x => x === d)
+        })
+
+        let m1 = Math.min(...heightOfLeftDepsForA)
+        let m2 = Math.min(...heightOfLeftDepsForB)
+
+        console.log(m1,m2)
+
+        return m1 > m2
+      })
+    })
+
     elements = transpose(elements)
 
     //
@@ -321,10 +346,24 @@ $(function() {
     deps: {
       "A": [],
       "B": ["A"],
-      "C": ["B"],
+      "C": ["B", "A"],
       "D": ["C", "A"]
     }
   })
 
   dag2.render()
+
+  console.log("AAAA")
+
+  let dag3 = new Dagger("#diagram3", {
+    deps: {
+      "0": [],
+      "A": ["0"],
+      "B": ["0"],
+      "C": ["B"],
+      "D": ["A"]
+    }
+  })
+
+  dag3.render()
 })
